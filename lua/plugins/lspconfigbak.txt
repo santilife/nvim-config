@@ -1,0 +1,95 @@
+local vim = vim
+
+return {
+	{
+		"dundalek/lazy-lsp.nvim",
+		dependencies = {
+			"neovim/nvim-lspconfig",
+			{ "VonHeikemen/lsp-zero.nvim", branch = "v3.x" },
+			"hrsh7th/cmp-nvim-lsp",
+			"hrsh7th/nvim-cmp",
+		},
+		config = function()
+			local lsp_zero = require("lsp-zero")
+
+			-- Configura keymaps y otras opciones antes de configurar los servidores
+			lsp_zero.on_attach(function(client, bufnr)
+				lsp_zero.default_keymaps({
+					buffer = bufnr,
+					preserve_mappings = false
+				})
+			end)
+
+			-- Configuración de lsp-zero, que se debe realizar antes de la configuración de servidores
+			lsp_zero.setup()
+
+			-- Configura los servidores manualmente después de la configuración inicial de lsp-zero
+			require("lazy-lsp").setup({
+				-- Excluir servidores no deseados
+				excluded_servers = {
+					"ccls", "zk",
+				},
+
+				-- Servidores preferidos por cada lenguaje
+				preferred_servers = {
+					markdown = {},
+					python = { "pyright" },
+					html = { "html" },
+					javascript = { "tsserver" },
+					php = { "intelephense" },
+					css = { "cssls" },
+					react = { "tsserver" },
+				},
+
+				prefer_local = true,
+
+				-- Configuración predeterminada
+				default_config = {
+					flags = {
+						debounce_text_changes = 150,
+					},
+				},
+
+				-- Configuración específica de servidores
+				configs = {
+					lua_ls = {
+						settings = {
+							Lua = {
+								diagnostics = {
+									globals = { "vim" },
+								},
+							},
+						},
+					},
+				},
+			})
+
+			-- Configura manualmente servidores adicionales si es necesario
+			local lspconfig = require("lspconfig")
+
+			-- Configuración del servidor HTML
+--			lspconfig.html.setup(lsp_zero.default_config())
+
+			-- Configuración del servidor JavaScript/TypeScript
+	--		lspconfig.tsserver.setup(lsp_zero.default_config())
+
+			-- Configuración del servidor PHP
+		--	lspconfig.intelephense.setup(lsp_zero.default_config())
+
+			-- Configuración del servidor CSS
+	--		lspconfig.cssls.setup(lsp_zero.default_config())
+
+			-- Configura el autocompletado con cmp para aceptar sugerencias con <Tab>
+			local cmp = require("cmp")
+			cmp.setup({
+				mapping = {
+					["<Tab>"] = cmp.mapping.confirm({ select = true }),
+				},
+				sources = cmp.config.sources({
+					{ name = "nvim_lsp" },
+				}),
+			})
+		end,
+	},
+}
+
